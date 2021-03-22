@@ -1,0 +1,9 @@
+{
+    "name": "Project 2",
+    "short_name": "pj2",
+    "theme_color": "#5fc1cb",
+    "background_color": "#69a4d2",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/"
+  }
