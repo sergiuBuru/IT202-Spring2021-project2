@@ -5,5 +5,13 @@
     "background_color": "#69a4d2",
     "display": "standalone",
     "scope": "/",
-    "start_url": "/"
+    "start_url": "/",
+    "description": "fill in later",
+    "icons": [
+        {
+            "src": "icons/icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
 }
