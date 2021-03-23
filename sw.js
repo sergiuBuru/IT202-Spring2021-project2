@@ -1,6 +1,7 @@
 var CACHE_NAME = 'my-site-cache-v2';
 var urlsToCache = [
-  '/'
+  '/IT202-Spring2021-project2/sw.js/',
+  'IT202-Spring2021-project2/sw.js/index.html'
 ];
 
 self.addEventListener('install', function(event) {
