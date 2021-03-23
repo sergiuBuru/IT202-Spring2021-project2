@@ -4,7 +4,7 @@
     "theme_color": "#5fc1cb",
     "background_color": "#69a4d2",
     "display": "standalone",
-    "scope": "/",
+    "scope": "/IT202-Spring2021-project2/",
     "start_url": "/IT202-Spring2021-project2/",
     "description": "fill in later",
     "icons": [
