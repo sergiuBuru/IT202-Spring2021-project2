@@ -21,8 +21,7 @@
     </style>
 </head>
 <body>
-    <canvas id="canvas">
-    </canvas>
+    <canvas id="canvas"></canvas>
 
     <button id="start" class="btn btn-primary w-50">Start</button>
 
@@ -85,13 +84,11 @@
             if(inGame) {
                 const keyname = event.key;
                 console.log(event.key);
-                if(keyname == "ArrowLeft") {
-                    rocket.y -= 15;
-                    console.log(rocket.y);
+                if(keyname == "ArrowLeft" && rocket.y >= 20) {
+                    rocket.y -= 20;
                 }
-                if(keyname == "ArrowRight") {
-                    rocket.y += 15;
-                    console.log(rocket.y);
+                if(keyname == "ArrowRight" && rocket.y <= 430) {
+                    rocket.y += 20;
                 }
             }
         })
