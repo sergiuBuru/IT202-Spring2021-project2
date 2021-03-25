@@ -24,9 +24,11 @@
 <body>
     <canvas id="canvas"></canvas>
 
-    <button id="start" class="btn btn-primary w-50">Start</button>
+    <button id="start" class="btn btn-success w-50" >Start</button>
 
-    <button id="pause" class="btn btn-warning w-50 mt-5">Pause game</button>
+    <button id="pause" class="btn btn-warning w-50 mt-5" disabled>Pause game</button>
+
+    <button id="restart" class="btn btn-primary w-50 mt-5" disabled>Restart level</button>
 
     <script>
         //Credit: MDN
@@ -58,7 +60,7 @@
         }
 
         //Gamge assets
-        let lives = 1;
+        let lives = 3;
         let level = 1;
         let currentStars = 0;
         let frames;
@@ -70,8 +72,12 @@
         let meteorImage;
         let starImage;
         let reqID;
+        //Star object and meteors array
+        let s;
+        let ms = [];
         let startBttn = document.querySelector("#start");
         let pauseBttn = document.querySelector("#pause");
+        let restartBttn = document.querySelector("#restart");
 
         //Canvas where the game elements are drawn onto
         let canvas = document.querySelector("#canvas");
@@ -81,8 +87,8 @@
         let resetGame = () => {
             lives = 3;
             level = 1;
-            frames = 0;
             inGame = false;
+            currentStars = 0;
             star = {
                 type: "star",
                 src: "GameAssets/star.png",
@@ -98,7 +104,7 @@
                 src: "GameAssets/meteor.png",
                 width: 90,
                 height: 90,
-                radius: 45,
+                radius: 35,
                 x: 820,
                 y: 0,
                 speed: 0
@@ -107,7 +113,7 @@
                 src: "GameAssets/rocket.png",
                 width: 60,
                 height: 60,
-                radius: 30,
+                radius: 15,
                 x: 50,
                 y: 220
             }
@@ -161,9 +167,6 @@
             return [s,meteors];
         }//
 
-        //Star object and meteors array
-        let s;
-        let ms = [];
         [s, ms] = positionObjects();
 
         let ctx = canvas.getContext("2d");
@@ -208,16 +211,22 @@
             }
 
             ctx.drawImage(starImage, s.x, s.y, s.width, s.height);
-            ms.forEach(meteor => {
-                
+            ms.forEach(meteor => {  
                 if(areColliding(rocket, meteor)) {
                     lives -= 1;
-                    meteor.x = 820;
-                    meteor.speed = getRandomInt(1,3);
-                    //find all empty "lanes" and place the star randomly on one of the them
-                    takenLanes[ (meteor.y - 20)/100 ] = -1;
-                    meteor.y = emptyLane();
-                }  else if(meteor.x < 0) {
+                    if(lives == 0) {
+                        //Draw the game over text
+                        ctx.font = "75px Ranchers";
+                        ctx.fillStyle = "white";
+                        ctx.fillText("GAME OVER", 225, 250);
+                    } else {
+                        meteor.x = 820;
+                        meteor.speed = getRandomInt(1,3);
+                        //find all empty "lanes" and place the star randomly on one of the them
+                        takenLanes[ (meteor.y - 20)/100 ] = -1;
+                        meteor.y = emptyLane();
+                    }
+                } else if(meteor.x < 0) {
                     meteor.x = 820;
                     meteor.speed = getRandomInt(1,3);
                     //find all empty "lanes" and place the star randomly on one of the them
@@ -229,7 +238,13 @@
                 }
                 ctx.drawImage(meteorImage, meteor.x, meteor.y, meteor.width, meteor.height);
             })
-            reqID = window.requestAnimationFrame(draw);
+            if(lives == 0) {
+                window.cancelAnimationFrame(reqID);
+                restartBttn.disabled = false;
+                pauseBttn.disabled = true;
+            } else {
+                reqID = window.requestAnimationFrame(draw);
+            }
         }
 
         //Set the meteor and star image
@@ -241,6 +256,8 @@
         //Add a start button that starts drawing
         startBttn.addEventListener("click", (event) => {
             inGame = true;
+            startBttn.disabled = true;
+            pauseBttn.disabled = false;
             draw();
         });
 
@@ -256,7 +273,22 @@
         })
 
         pauseBttn.addEventListener("click", (event) => {
+            //reqID = window.requestAnimationFrame(draw);
             window.cancelAnimationFrame(reqID);
+            //Draw the game over text
+            ctx.font = "75px Ranchers";
+            ctx.fillStyle = "white";
+            ctx.fillText("GAME PAUSED", 225, 250);
+            inGame = false;
+            startBttn.disabled = false;
+        });
+
+        restartBttn.addEventListener("click", (event) => {
+            resetGame();
+            [s, ms] = positionObjects();
+            inGame = true;
+            restartBttn.disabled = true;
+            draw();
         })
 
         
