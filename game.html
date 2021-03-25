@@ -8,10 +8,9 @@
     <title>Document</title>
     <style>
         canvas {
-            margin-left: 7%;
-            margin-right: 7%;
+            margin-left: 10%;
+            /* margin-right: %; */
             margin-top: 10%;
-            background-image: url("GameAssets/bg1.jpg");
         }
 
         button {
@@ -26,53 +25,154 @@
     <button id="start" class="btn btn-primary w-50">Start</button>
 
     <script>
-        //Gamge assets
-        let lives = 1;
-        let level = 1;
-        let frames = 0;
-        let stars = {
-            src: "GameAssets/star.png",
-            count: 0,
-            width: 100,
-            height: 100,
-            x: 0,
-            y: 0
-        };
-        let meteor = {
-            src: "GameAssets/meteor.png",
-            width: 100,
-            height: 100,
-            x: 0,
-            y: 0
-        };
-        let rocket = {
-            src: "GameAssets/rocket.png",
-            width: 60,
-            height: 60,
-            x: 50,
-            y: 220
+        //Credit: MDN
+        let getRandomInt = (min, max) => {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
+
+        //Gamge assets
+        let lives;
+        let level;
+        let frames;
+        let stars = {};
+        let meteor = {};
+        let rocket = {};
         let inGame = false;
+        let meteorImage;
+        let starImage;
         let startBttn = document.querySelector("#start");
 
         //Canvas where the game elements are drawn onto
         let canvas = document.querySelector("#canvas");
-        canvas.width = 900;
+        canvas.width = 800;
         canvas.height = 500;
+
+        let resetGame = () => {
+            lives = 1;
+            level = 1;
+            frames = 0;
+            inGame = false;
+            star = {
+                src: "GameAssets/star.png",
+                count: 0,
+                width: 50,
+                height: 40,
+                x: 850,
+                y: 0,
+                speed: 0
+            };
+            meteor = {
+                src: "GameAssets/meteor.png",
+                width: 90,
+                height: 90,
+                x: 820,
+                y: 0,
+                speed: 0
+            };
+            rocket = {
+                src: "GameAssets/rocket.png",
+                width: 60,
+                height: 60,
+                x: 50,
+                y: 220
+            }
+            canvas.style = "background-image: url('GameAssets/bg1.jpg')";
+        }
+
+        resetGame();
+
+        //randomize the speed of a meteor
+        let randomizeSpeed = (meteor) => {
+            meteor.speed = getRandomInt(1,3);
+        }
+
+
+        //Create 3 meteor objects and a star and give them random y coordinates on the canvas
+        let positionObjects = () => {
+            const meteorY = [20,120,220,320,420];
+            const meteors = [
+                Object.assign({}, meteor),
+                Object.assign({}, meteor),
+                Object.assign({}, meteor)
+            ];
+            let meteorIndices = [];
+            let starIndex = -1;
+            let s = Object.assign({}, star);
+
+            //create 3 y coordinates for the meteors
+            while(true) {
+                if(meteorIndices.length == 3) {break;}
+                else {
+                    //find a random index between 0-4 inclusive
+                    const index = getRandomInt(0,4);
+                    if( !meteorIndices.includes(index)) {
+                        meteorIndices.push(index);
+                    }
+                }
+            }
+
+            //create one y coordinate for the star, different than any meteor y coordinate
+            while(true) {
+                const index = getRandomInt(0,4);
+                if( !meteorIndices.includes(index)) {
+                    starIndex = index;
+                    break;
+                }
+            }
+
+            //Set the y coordinate for each meteor object
+            for(let i = 0; i < 3; i++) {
+                meteors[i].y = meteorY[meteorIndices[i]];
+                //randomize the speed of each meteor
+                meteors[i].speed = getRandomInt(1,3);
+            }
+            s.y = meteorY[starIndex];
+            s.speed = getRandomInt(1,3);
+            return [s,meteors];
+        }//
+
+        //Star object and meteors array
+        let s;
+        let ms = [];
+        [s, ms] = positionObjects();
+
+        
         let ctx = canvas.getContext("2d");
 
         //Set the background of the underneath canvas
         let rocketImage = new Image();
         rocketImage.src = rocket.src;
-        rocketImage.width = rocket.width;
-        rocketImage.height = rocket.height;
         
         let draw = () => {
             ctx.clearRect(0,0, canvas.width, canvas.height);
             ctx.drawImage(rocketImage, rocket.x, rocket.y, rocket.width, rocket.height);
-            //console.log(rocket.x, rocket.y);
+            
+            if(s.x < 0){
+                s.x = 850;
+                s.speed = getRandomInt(1,3);
+            } else {
+                s.x -= s.speed;
+            }
+            ctx.drawImage(starImage, s.x, s.y, s.width, s.height);
+            ms.forEach(meteor => {
+                if(meteor.x < 0) {
+                    meteor.x = 820;
+                    meteor.speed = getRandomInt(1,3);
+                } else {
+                    meteor.x -= meteor.speed;
+                }
+                ctx.drawImage(meteorImage, meteor.x, meteor.y, meteor.width, meteor.height);
+            })
             window.requestAnimationFrame(draw);
         }
+
+        //Set the meteor and star image
+        meteorImage = new Image();
+        meteorImage.src = ms[0].src;
+        starImage = new Image();
+        starImage.src = s.src;
 
         //Add a start button that starts drawing
         startBttn.addEventListener("click", (event) => {
@@ -82,16 +182,15 @@
 
         document.addEventListener("keydown", (event) => {
             if(inGame) {
-                const keyname = event.key;
-                console.log(event.key);
-                if(keyname == "ArrowLeft" && rocket.y >= 20) {
-                    rocket.y -= 20;
+                if(event.key == "ArrowLeft" && rocket.y >= 20) {
+                    rocket.y -= 25;
                 }
-                if(keyname == "ArrowRight" && rocket.y <= 430) {
-                    rocket.y += 20;
+                if(event.key == "ArrowRight" && rocket.y <= 420) {
+                    rocket.y += 25;
                 }
             }
         })
+
         
     </script>
 </body>
