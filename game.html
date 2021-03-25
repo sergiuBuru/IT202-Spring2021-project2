@@ -69,6 +69,8 @@
         let rocket = {};
         let inGame = false;
         let drawStar = true;
+        let nextLevel = false;
+        let gameWon = false;
         let meteorImage;
         let starImage;
         let reqID;
@@ -86,8 +88,7 @@
 
         let resetGame = () => {
             lives = 3;
-            level = 1;
-            inGame = false;
+            inGame = true;
             currentStars = 0;
             star = {
                 type: "star",
@@ -117,9 +118,11 @@
                 x: 50,
                 y: 220
             }
-            canvas.style = "background-image: url('GameAssets/bg1.jpg')";
+            if(level == 1) {canvas.style = "background-image: url('GameAssets/bg1.jpg')";}
+            else if(level == 2) {canvas.style = "background-image: url('GameAssets/bg3.jpg')";}
+            else if(level == 3) {canvas.style = "background-image: url('GameAssets/bg2.jpg')";}
+            
         }
-
         resetGame();
 
 
@@ -160,10 +163,15 @@
             for(let i = 0; i < 3; i++) {
                 meteors[i].y = meteorY[meteorIndices[i]];
                 //randomize the speed of each meteor
-                meteors[i].speed = getRandomInt(1,3);
+                if(level == 1) {meteors[i].speed = getRandomInt(2,3) + Math.random();}
+                else if(level == 2) {meteors[i].speed = getRandomInt(3,4) + Math.random();}
+                else if(level == 3) {meteors[i].speed = getRandomInt(4,5 + Math.random());}
             }
             s.y = meteorY[starIndex];
-            s.speed = getRandomInt(1,3);
+            if(level == 1) {s.speed = getRandomInt(2,3) + + Math.random();}
+            else if(level == 2) {s.speed = getRandomInt(3,4) + Math.random();}
+            else if(level == 3) {s.speed = getRandomInt(4,5) + Math.random();}
+
             return [s,meteors];
         }//
 
@@ -183,25 +191,59 @@
             //Draw the text
             ctx.font = "25px Ranchers";
             ctx.fillStyle = "white";
-            ctx.fillText("Level: " + level, 20, 35);
+            ctx.fillText("Level: " + level, 20, 35) ;
             ctx.fillText("Lives: " + lives, 370, 35);
             ctx.fillText("Stars: " + currentStars, 700, 35);
 
             //Draw rocket
             ctx.drawImage(rocketImage, rocket.x, rocket.y, rocket.width, rocket.height);
 
+            let speed;
+            if(level == 1) {speed = getRandomInt(2,3) + Math.random();}
+            else if(level == 2) {speed = getRandomInt(3,4) + Math.random();}
+            else if(level == 3) {speed = getRandomInt(5,6) + Math.random();}
+
             //If the star was collected
             if(areColliding(rocket, s)){
                 currentStars += 1;
-                s.x = 850;
-                s.speed = getRandomInt(1,3);
-                //find all empty "lanes" and place the star randomly on one of the them
-                takenLanes[ (s.y - 20)/100 ] = -1;
-                s.y = emptyLane();
+                //Move onto next level
+                if(currentStars == 3)//FIX THIS
+                {
+                    console.log("here");
+                    if(level == 3) {
+                        ctx.font = "75px Ranchers";
+                        ctx.fillStyle = "white";
+                        ctx.fillText("Congratulations.  You  won!", 20,250)
+                        startBttn.disabled = true;
+                        pauseBttn.disabled = true;
+                        restartBttn.disabled = true;
+                        gameWon = true;
+                    } else {
+                        ctx.font = "50px Ranchers";
+                        ctx.fillStyle = "white";
+                        ctx.fillText("Level  " + level + "  completed", 225, 200);
+                        ctx.font = "30px Ranchers";
+                        ctx.fillText("Press  start  to  begin  the  new  level", 200, 300);
+                        level += 1;
+                        resetGame();
+                        [s, ms] = positionObjects();
+                        pauseBttn.disabled = true;
+                        restartBttn.disabled = true;
+                        startBttn.disabled = false;
+                        nextLevel = true;
+                    }
+            
+                } else {
+                    s.x = 850;
+                    s.speed = speed;
+                    //find all empty "lanes" and place the star randomly on one of the them
+                    takenLanes[ (s.y - 20)/100 ] = -1;
+                    s.y = emptyLane();
+                }
 
             } else if(s.x < 0){//star reached the end of the screen
                 s.x = 850;
-                s.speed = getRandomInt(1,3);
+                s.speed = speed;
                 //find all empty "lanes" and place the star randomly on one of the them
                 takenLanes[ (s.y - 20)/100 ] = -1;
                 s.y = emptyLane();
@@ -221,14 +263,14 @@
                         ctx.fillText("GAME OVER", 225, 250);
                     } else {
                         meteor.x = 820;
-                        meteor.speed = getRandomInt(1,3);
+                        meteor.speed = speed;
                         //find all empty "lanes" and place the star randomly on one of the them
                         takenLanes[ (meteor.y - 20)/100 ] = -1;
                         meteor.y = emptyLane();
                     }
                 } else if(meteor.x < 0) {
                     meteor.x = 820;
-                    meteor.speed = getRandomInt(1,3);
+                    meteor.speed = speed;
                     //find all empty "lanes" and place the star randomly on one of the them
                     takenLanes[ (meteor.y - 20)/100 ] = -1;
                     meteor.y = emptyLane();
@@ -238,10 +280,13 @@
                 }
                 ctx.drawImage(meteorImage, meteor.x, meteor.y, meteor.width, meteor.height);
             })
-            if(lives == 0) {
+            if(lives == 0 || nextLevel) {
+                nextLevel = false;
                 window.cancelAnimationFrame(reqID);
                 restartBttn.disabled = false;
                 pauseBttn.disabled = true;
+            } else if(gameWon) {
+                window.cancelAnimationFrame(reqID);
             } else {
                 reqID = window.requestAnimationFrame(draw);
             }
@@ -281,6 +326,7 @@
             ctx.fillText("GAME PAUSED", 225, 250);
             inGame = false;
             startBttn.disabled = false;
+            restartBttn.disabled = false;
         });
 
         restartBttn.addEventListener("click", (event) => {
@@ -288,6 +334,7 @@
             [s, ms] = positionObjects();
             inGame = true;
             restartBttn.disabled = true;
+            pauseBttn.disabled = false;
             draw();
         })
 
