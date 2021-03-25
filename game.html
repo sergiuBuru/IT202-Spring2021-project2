@@ -5,6 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Ranchers&display=swap" rel="stylesheet">
     <title>Document</title>
     <style>
         canvas {
@@ -28,14 +30,14 @@
 
     <script>
         //Credit: MDN
-        let getRandomInt = (min, max) => {
+        const getRandomInt = (min, max) => {
             min = Math.ceil(min);
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
         //Find all empty lanes where a meteor and star can be on and return a random one
-        let emptyLane = () => {
+        const emptyLane = () => {
             const lanes = [20, 120, 220, 320, 420];
             const availableLanes = [];
             lanes.forEach(lane => {
@@ -45,14 +47,26 @@
             return availableLanes[index];
         } 
 
+        const areColliding = function(obj1, obj2) {
+          let dx = obj1.x - obj2.x;
+          let dy = obj1.y - obj2.y;
+          var distance = Math.sqrt(dx * dx + dy * dy);
+
+          if( distance < obj1.radius + obj2.radius) {
+              return true;
+          }
+        }
+
         //Gamge assets
-        let lives;
-        let level;
+        let lives = 1;
+        let level = 1;
+        let currentStars = 0;
         let frames;
-        let stars = {};
+        let star = {};
         let meteor = {};
         let rocket = {};
         let inGame = false;
+        let drawStar = true;
         let meteorImage;
         let starImage;
         let reqID;
@@ -65,23 +79,26 @@
         canvas.height = 500;
 
         let resetGame = () => {
-            lives = 1;
+            lives = 3;
             level = 1;
             frames = 0;
             inGame = false;
             star = {
+                type: "star",
                 src: "GameAssets/star.png",
-                count: 0,
                 width: 50,
                 height: 40,
+                radius: 25,
                 x: 850,
                 y: 0,
                 speed: 0
             };
             meteor = {
+                type: "meteor",
                 src: "GameAssets/meteor.png",
                 width: 90,
                 height: 90,
+                radius: 45,
                 x: 820,
                 y: 0,
                 speed: 0
@@ -90,6 +107,7 @@
                 src: "GameAssets/rocket.png",
                 width: 60,
                 height: 60,
+                radius: 30,
                 x: 50,
                 y: 220
             }
@@ -100,7 +118,7 @@
 
 
         //Create 3 meteor objects and a star and give them random y coordinates on the canvas
-        let positionObjects = () => {
+        const positionObjects = () => {
             const meteorY = [20,120,220,320,420];
             const meteors = [
                 Object.assign({}, meteor),
@@ -148,7 +166,6 @@
         let ms = [];
         [s, ms] = positionObjects();
 
-        
         let ctx = canvas.getContext("2d");
 
         //Set the background of the underneath canvas
@@ -158,11 +175,28 @@
 
         //Keep track of the 5 y coordinate lanes where a star or meteor can be moving on at one time
         let takenLanes = [];
-        let draw = () => {
+        const draw = () => {
             ctx.clearRect(0,0, canvas.width, canvas.height);
+            //Draw the text
+            ctx.font = "25px Ranchers";
+            ctx.fillStyle = "white";
+            ctx.fillText("Level: " + level, 20, 35);
+            ctx.fillText("Lives: " + lives, 370, 35);
+            ctx.fillText("Stars: " + currentStars, 700, 35);
+
+            //Draw rocket
             ctx.drawImage(rocketImage, rocket.x, rocket.y, rocket.width, rocket.height);
-            
-            if(s.x < 0){
+
+            //If the star was collected
+            if(areColliding(rocket, s)){
+                currentStars += 1;
+                s.x = 850;
+                s.speed = getRandomInt(1,3);
+                //find all empty "lanes" and place the star randomly on one of the them
+                takenLanes[ (s.y - 20)/100 ] = -1;
+                s.y = emptyLane();
+
+            } else if(s.x < 0){//star reached the end of the screen
                 s.x = 850;
                 s.speed = getRandomInt(1,3);
                 //find all empty "lanes" and place the star randomly on one of the them
@@ -172,9 +206,18 @@
                 takenLanes[ (s.y - 20)/100 ] = s.y;
                 s.x -= s.speed;
             }
+
             ctx.drawImage(starImage, s.x, s.y, s.width, s.height);
             ms.forEach(meteor => {
-                if(meteor.x < 0) {
+                
+                if(areColliding(rocket, meteor)) {
+                    lives -= 1;
+                    meteor.x = 820;
+                    meteor.speed = getRandomInt(1,3);
+                    //find all empty "lanes" and place the star randomly on one of the them
+                    takenLanes[ (meteor.y - 20)/100 ] = -1;
+                    meteor.y = emptyLane();
+                }  else if(meteor.x < 0) {
                     meteor.x = 820;
                     meteor.speed = getRandomInt(1,3);
                     //find all empty "lanes" and place the star randomly on one of the them
