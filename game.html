@@ -9,26 +9,65 @@
     <link href="https://fonts.googleapis.com/css2?family=Ranchers&display=swap" rel="stylesheet">
     <title>Document</title>
     <style>
-        canvas {
-            margin-left: 10%;
-            /* margin-right: %; */
-            margin-top: 10%;
+
+        @media only screen and (min-width: 601px) {
+            canvas {
+                width: 800px;
+                height: 500px;
+                padding-left: 0;
+                padding-right: 0;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 3%;
+                display: block;
+            }
+
+            button {
+                margin: auto;
+                padding: auto;
+                width: 100%;
+                margin-top: 3%;
+            }
+
+            #button-div {
+                width: max-content;
+                margin: auto;
+                margin-top: 3%;
+            }
         }
 
-        button {
-            margin-top: 5%;
-            margin-left: 25%;
+        @media only screen and (max-width: 600px){
+            canvas {
+                width: 100%;
+                height: 80%;
+                margin: 0;
+                padding: 0;
+            }
+
+            button {
+                margin: 0;
+                padding: 0;
+                width: 32%;
+            }
+
+            #button-div {
+                /* width: 20%; */
+                /* display: inline-block; */
+            }
         }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
 
-    <button id="start" class="btn btn-success w-50" >Start</button>
+    <div id="button-div">
+        <button id="start" class="btn btn-success" >Start</button>
 
-    <button id="pause" class="btn btn-warning w-50 mt-5" disabled>Pause game</button>
+        <button id="pause" class="btn btn-warning" disabled>Pause game</button>
 
-    <button id="restart" class="btn btn-primary w-50 mt-5" disabled>Restart level</button>
+        <button id="restart" class="btn btn-primary" disabled>Restart level</button>
+    </div>
+
 
     <script>
         //Credit: MDN
@@ -83,8 +122,8 @@
 
         //Canvas where the game elements are drawn onto
         let canvas = document.querySelector("#canvas");
-        canvas.width = 800;
-        canvas.height = 500;
+        // canvas.width = 800;
+        // canvas.height = 500;
 
         let resetGame = () => {
             lives = 3;
